@@ -1,0 +1,25 @@
+{
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.detectIndentation": false,
+    "editor.tabSize": 4,
+    "editor.codeActionsOnSave": {
+        "source.fixAll": "explicit",
+        "source.fixAll.eslint": "explicit",
+        "source.fixAll.stylelint": "explicit"
+    },
+    "files.eol": "auto",
+
+    "prettier.enable": true,
+    "prettier.semi": true,
+    "prettier.tabWidth": 4,
+    "prettier.printWidth": 160,
+    "prettier.endOfLine": "auto",
+    "prettier.singleQuote": true,
+    "prettier.ignorePath": ".prettierignore",
+
+    "i18n-ally.localesPaths": ["src-tauri/resources/locale"],
+    "i18n-ally.enabledParsers": ["ini"],
+    "i18n-ally.sourceLanguage": "zh-CN",
+    "i18n-ally.displayLanguage": "zh-CN"
+}
