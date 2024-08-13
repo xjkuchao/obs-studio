@@ -18,7 +18,6 @@ dist
 .local
 /bin
 Dockerfile
-pnpm-lock.yaml
 tsconfig.node.json
 
 babel.config.js

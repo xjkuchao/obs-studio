@@ -13,4 +13,3 @@
 **/*.tsbuildinfo
 /src/manifest.json
 .eslintcache
-pnpm-lock.yaml

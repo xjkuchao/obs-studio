@@ -122,11 +122,11 @@ module.exports = {
             },
         ],
 
-        'unused-imports/no-unused-imports-ts': 'warn',
-        'unused-imports/no-unused-vars-ts': [
-            'warn',
-            { vars: 'all', varsIgnorePattern: '^_', args: 'after-used', argsIgnorePattern: '^_' },
-        ],
+        // 'unused-imports/no-unused-imports-ts': 'warn',
+        // 'unused-imports/no-unused-vars-ts': [
+        //     'warn',
+        //     { vars: 'all', varsIgnorePattern: '^_', args: 'after-used', argsIgnorePattern: '^_' },
+        // ],
 
         '@typescript-eslint/no-unused-vars': [
             'warn',

@@ -6,7 +6,7 @@
             "type": "shell",
             "problemMatcher": [],
             "isBackground": true,
-            "command": "pnpm",
+            "command": "bun",
             "args": ["dev"],
             "presentation": {
                 "reveal": "silent",
@@ -19,7 +19,7 @@
         {
             "label": "ui:build",
             "type": "shell",
-            "command": "pnpm",
+            "command": "bun",
             "args": ["build"],
             "presentation": {
                 "reveal": "silent",
