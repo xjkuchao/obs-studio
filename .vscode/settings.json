@@ -21,5 +21,8 @@
     "i18n-ally.localesPaths": ["src-tauri/resources/locale"],
     "i18n-ally.enabledParsers": ["ini"],
     "i18n-ally.sourceLanguage": "zh-CN",
-    "i18n-ally.displayLanguage": "zh-CN"
+    "i18n-ally.displayLanguage": "zh-CN",
+    "[toml]": {
+        "editor.defaultFormatter": "tamasfe.even-better-toml"
+    }
 }

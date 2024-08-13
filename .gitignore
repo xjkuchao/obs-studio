@@ -24,4 +24,5 @@ target
 *.sw?
 
 Cargo.lock
+pnpm-lock.yaml
 .eslintcache

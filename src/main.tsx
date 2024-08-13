@@ -5,6 +5,9 @@ import ReactDOM from 'react-dom/client';
 import { initReactI18next } from 'react-i18next';
 
 import App from './App';
+import { setupConsole } from './utils/log';
+
+await setupConsole();
 
 const localeMessages: Record<string, Record<string, Record<string, string>>> = await invoke(
     'get_locale_messages',
