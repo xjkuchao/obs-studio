@@ -1,5 +1,6 @@
 import { listen } from '@tauri-apps/api/event';
 import { debug, error, info, trace, warn } from '@tauri-apps/plugin-log';
+import dayjs from 'dayjs';
 
 function formatMessage(...data: any[]): string {
     let str = '';
@@ -13,6 +14,10 @@ function formatMessage(...data: any[]): string {
     return str;
 }
 
+function localMessagePrefix(level: string): string {
+    return `[${dayjs().format('MM.DD HH:mm:ss')} ${level} webview]`;
+}
+
 export async function setupConsole() {
     const original_console_log = console.log;
     const original_console_debug = console.debug;
@@ -21,27 +26,27 @@ export async function setupConsole() {
     const original_console_error = console.error;
 
     console.log = (...data: any[]) => {
-        original_console_log(...data);
+        original_console_log(localMessagePrefix('TRACE'), ...data);
         trace(formatMessage(...data));
     };
 
     console.debug = (...data: any[]) => {
-        original_console_debug(...data);
+        original_console_debug(localMessagePrefix('DEBUG'), ...data);
         debug(formatMessage(...data));
     };
 
     console.info = (...data: any[]) => {
-        original_console_info(...data);
+        original_console_info(localMessagePrefix('INFO'), ...data);
         info(formatMessage(...data));
     };
 
     console.warn = (...data: any[]) => {
-        original_console_warn(...data);
+        original_console_warn(localMessagePrefix('WARN'), ...data);
         warn(formatMessage(...data));
     };
 
     console.error = (...data: any[]) => {
-        original_console_error(...data);
+        original_console_error(localMessagePrefix('ERROR'), ...data);
         error(formatMessage(...data));
     };
 

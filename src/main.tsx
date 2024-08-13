@@ -15,6 +15,7 @@ const localeMessages: Record<string, Record<string, Record<string, string>>> = a
 const supportedLocales: string[] = Object.keys(localeMessages);
 let defaultLocale: string = await invoke('get_default_locale');
 if (defaultLocale === 'zh-Hans-CN') {
+    // MacOS uses zh-Hans-CN, but i18next uses zh-CN
     defaultLocale = 'zh-CN';
 }
 
