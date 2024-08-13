@@ -20,7 +20,7 @@ if (defaultLocale === 'zh-Hans-CN') {
 
 // console.log('localeMessages:', localeMessages);
 // console.log('supportedLocales:', supportedLocales);
-// console.log('defaultLocale:', defaultLocale);
+console.log('defaultLocale:', defaultLocale);
 
 i18n.use(initReactI18next).init({
     lng: defaultLocale,
