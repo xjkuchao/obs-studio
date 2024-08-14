@@ -1,14 +1,58 @@
+use std::{collections::HashMap, sync::OnceLock};
+
 use log::debug;
 use tauri::{
-    AppHandle,
-    Manager, menu::{
-        CheckMenuItem, Menu, MenuId, MenuItem, PredefinedMenuItem, Submenu,
-    }, Wry,
+    menu::{CheckMenuItem, Menu, MenuId, MenuItem, MenuItemKind, PredefinedMenuItem, Submenu},
+    tray::{MouseButton, MouseButtonState, TrayIconEvent},
+    AppHandle, Manager, Wry,
 };
-use tauri::tray::{MouseButton, MouseButtonState, TrayIconEvent};
 
-use crate::Result;
-use crate::utils::trans::t;
+use crate::{utils::trans::t, Result};
+
+type MenuMap = HashMap<MenuId, MenuItemKind<Wry>>;
+static MENUS: OnceLock<MenuMap> = OnceLock::new();
+
+fn flat_submenu(menuitem: &MenuItemKind<Wry>, menus: &mut MenuMap) {
+    menus.insert(menuitem.id().clone(), menuitem.clone());
+
+    let menu = match menuitem.as_submenu() {
+        Some(submenu) => submenu,
+        None => return,
+    };
+
+    let items = match menu.items() {
+        Ok(items) => items,
+        Err(_) => return,
+    };
+
+    for item in items {
+        flat_submenu(&item, menus);
+    }
+}
+
+fn flat_menu(menu: &Menu<Wry>) -> MenuMap {
+    let mut menus: MenuMap = HashMap::new();
+
+    let items = match menu.items() {
+        Ok(items) => items,
+        Err(_) => return menus,
+    };
+
+    for item in items {
+        flat_submenu(&item, &mut menus);
+    }
+
+    menus
+}
+
+fn find_menu_by_id(app: &AppHandle, id: &MenuId) -> Option<MenuItemKind<Wry>> {
+    let menus = MENUS.get_or_init(|| {
+        let menu = app.menu().unwrap();
+        flat_menu(&menu)
+    });
+
+    menus.get(id).cloned()
+}
 
 pub fn setup_menus(app: &AppHandle) -> Result<()> {
     let menu = Menu::with_items(
@@ -293,24 +337,8 @@ pub fn setup_menus(app: &AppHandle) -> Result<()> {
 
     app.on_menu_event(|app, event| {
         if event.id == MenuId::new("Basic.MainMenu.Edit.Scale.Window") {
-            let menu = app
-                .menu()
-                .unwrap()
-                .get("Basic.MainMenu.Edit")
-                .unwrap()
-                .as_submenu()
-                .unwrap()
-                .get("Basic.MainMenu.Edit.Scale")
-                .unwrap()
-                .as_submenu()
-                .unwrap()
-                .get("Basic.MainMenu.Edit.Scale.Window")
-                .unwrap()
-                .as_check_menuitem()
-                .unwrap()
-                .clone();
-
-            let is_checked = menu.is_checked().unwrap();
+            let menu = find_menu_by_id(app, &event.id).unwrap();
+            let is_checked = menu.as_check_menuitem().unwrap().is_checked().unwrap();
 
             debug!("is_checked: {:?} {:?}", menu.id(), is_checked);
         }
@@ -333,21 +361,9 @@ fn setup_tray_menu(app: &AppHandle, show: bool) -> Result<Option<Menu<Wry>>> {
     let tray_menu = Menu::with_items(
         app,
         &[
-            &MenuItem::with_id(
-                app,
-                "Basic.SystemTray.Show",
-                title,
-                true,
-                None::<&str>,
-            )?,
+            &MenuItem::with_id(app, "Basic.SystemTray.Show", title, true, None::<&str>)?,
             &PredefinedMenuItem::separator(app)?,
-            &MenuItem::with_id(
-                app,
-                "Basic.SystemTray.Exit",
-                t("Exit")?,
-                true,
-                None::<&str>,
-            )?,
+            &MenuItem::with_id(app, "Basic.SystemTray.Exit", t("Exit")?, true, None::<&str>)?,
         ],
     )?;
 

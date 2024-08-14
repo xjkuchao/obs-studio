@@ -1,17 +1,19 @@
-use std::collections::HashMap;
-use std::path::PathBuf;
+use std::{
+    collections::HashMap,
+    path::PathBuf,
+    sync::{Mutex, OnceLock},
+};
 
+use anyhow::anyhow;
 use configparser::ini::Ini;
 use log::error;
-use std::sync::{Mutex, OnceLock};
-use tauri::AppHandle;
-use tauri::Manager;
+use tauri::{AppHandle, Manager};
 
 use crate::Result;
 
 pub type LocaleMap = HashMap<String, HashMap<String, HashMap<String, Option<String>>>>;
-
 pub static LOCALES: OnceLock<LocaleMap> = OnceLock::new();
+
 static CURRENT_LOCALE: OnceLock<Mutex<String>> = OnceLock::new();
 
 pub fn load_locales(app: &AppHandle) -> Result<()> {
@@ -114,6 +116,17 @@ pub fn get_locale() -> Result<String> {
 }
 
 pub fn set_locale(locale: &str) -> Result<()> {
+    // locale must in the supported locales
+    let support_locales = LOCALES
+        .get()
+        .unwrap()
+        .keys()
+        .cloned()
+        .collect::<Vec<String>>();
+    if !support_locales.contains(&locale.to_string()) {
+        return Err(anyhow!("Unsupported locale: {}", locale));
+    }
+
     let mut current_locale = CURRENT_LOCALE.get().unwrap().lock().unwrap();
     *current_locale = locale.to_string();
 
