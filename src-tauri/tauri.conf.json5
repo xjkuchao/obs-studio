@@ -14,8 +14,14 @@
                 title: 'obs-studio',
                 width: 1086,
                 height: 729,
+                skipTaskbar: false,
+                theme: 'Dark',
             },
         ],
+        trayIcon: {
+            iconPath: 'icons/obs-studio.ico',
+            iconAsTemplate: true,
+        },
         security: {
             csp: null,
         },
@@ -30,6 +36,8 @@
             // "icons/icon.icns",
             'icons/obs-studio.ico',
         ],
-        resources: ['resources/*'],
+        resources: [
+            'resources/*'
+        ],
     },
 }

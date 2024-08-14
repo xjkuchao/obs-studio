@@ -20,6 +20,7 @@ pub fn run() {
     builder = builder.setup(|app| {
         utils::locale::load_locales(app.app_handle())?;
         ui::menu::setup_menus(app.app_handle())?;
+        ui::menu::setup_tray(app.app_handle())?;
 
         if cfg!(debug_assertions) {
             // `main` is the first window from tauri.conf.json without an explicit label
@@ -53,6 +54,19 @@ pub fn run() {
             .build(),
     );
     builder = builder.plugin(tauri_plugin_window_state::Builder::default().build());
+
+    // builder = builder.on_window_event(|window, event| {
+    //     match event {
+    //         tauri::WindowEvent::CloseRequested { api, .. } => {
+    //             if window.label() == "main" {
+    //                 api.prevent_close();
+    //
+    //                 window.hide().unwrap();
+    //             }
+    //         }
+    //         _ => {}
+    //     }
+    // });
 
     // 事件
     builder = builder.invoke_handler(tauri::generate_handler![
