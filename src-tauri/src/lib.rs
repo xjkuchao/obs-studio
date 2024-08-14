@@ -22,10 +22,9 @@ pub fn run() {
         ui::menu::setup_menus(app.app_handle())?;
         ui::menu::setup_tray(app.app_handle())?;
 
-        if cfg!(debug_assertions) {
-            // `main` is the first window from tauri.conf.json without an explicit label
-            app.get_webview_window("main").unwrap().open_devtools();
-        }
+        // `main` is the first window from tauri.conf.json without an explicit label
+        #[cfg(debug_assertions)]
+        app.get_webview_window("main").unwrap().open_devtools();
 
         Ok(())
     });
