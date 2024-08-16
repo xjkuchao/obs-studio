@@ -1,6 +1,7 @@
 use tauri::Manager;
 
 mod cmds;
+mod protocols;
 mod ui;
 mod utils;
 
@@ -19,12 +20,10 @@ pub fn run() {
     // 初始化
     builder = builder.setup(|app| {
         utils::locale::load_locales(app.app_handle())?;
+        utils::config::setup_global_config(app.app_handle())?;
         ui::menu::setup_menus(app.app_handle())?;
-        ui::menu::setup_tray(app.app_handle())?;
-
-        // `main` is the first window from tauri.conf.json without an explicit label
-        #[cfg(debug_assertions)]
-        app.get_webview_window("main").unwrap().open_devtools();
+        ui::tray::setup_tray(app.app_handle())?;
+        ui::layout::setup_layout(app.app_handle())?;
 
         Ok(())
     });
@@ -34,10 +33,34 @@ pub fn run() {
         tauri_plugin_log::Builder::new()
             .clear_targets()
             .targets([
-                tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Webview)
-                    .filter(|metadata| !metadata.target().starts_with("webview")),
+                tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Webview).filter(
+                    |metadata| {
+                        let target = metadata.target();
+                        !(target.starts_with("webview")
+                            || target.starts_with("wgpu_core::")
+                            || target.starts_with("naga::")
+                            || target.starts_with("wgpu_hal::"))
+                    },
+                ),
                 tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::LogDir {
-                    file_name: Some(chrono::Local::now().format("%Y-%m-%d").to_string()),
+                    file_name: Some(chrono::Local::now().format("main_%Y-%m-%d").to_string()),
+                })
+                .filter(|metadata| {
+                    let target = metadata.target();
+
+                    !(target.starts_with("wgpu_core::")
+                        || target.starts_with("naga::")
+                        || target.starts_with("wgpu_hal::"))
+                }),
+                tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::LogDir {
+                    file_name: Some(chrono::Local::now().format("wgpu_%Y-%m-%d").to_string()),
+                })
+                .filter(|metadata| {
+                    let target = metadata.target();
+                    (target.starts_with("wgpu_core::")
+                        || target.starts_with("naga::")
+                        || target.starts_with("wgpu_hal::"))
+                        && metadata.level() <= log::Level::Info
                 }),
             ])
             .level(LOG_LEVEL)
@@ -54,18 +77,20 @@ pub fn run() {
     );
     builder = builder.plugin(tauri_plugin_window_state::Builder::default().build());
 
-    // builder = builder.on_window_event(|window, event| {
-    //     match event {
-    //         tauri::WindowEvent::CloseRequested { api, .. } => {
-    //             if window.label() == "main" {
-    //                 api.prevent_close();
-    //
-    //                 window.hide().unwrap();
-    //             }
-    //         }
-    //         _ => {}
-    //     }
-    // });
+    // 自定义协议
+    // builder = builder.register_asynchronous_uri_scheme_protocol(
+    //     "stream",
+    //     move |_app, request, responder| match protocols::stream::setup_stream_protocol(request) {
+    //         Ok(http_response) => responder.respond(http_response),
+    //         Err(e) => responder.respond(
+    //             http::response::Builder::new()
+    //                 .status(http::status::StatusCode::INTERNAL_SERVER_ERROR)
+    //                 .header(http::header::CONTENT_TYPE, "text/plain")
+    //                 .body(e.to_string().as_bytes().to_vec())
+    //                 .unwrap(),
+    //         ),
+    //     },
+    // );
 
     // 事件
     builder = builder.invoke_handler(tauri::generate_handler![
@@ -74,7 +99,11 @@ pub fn run() {
     ]);
 
     // 运行
-    builder
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+    let app = builder
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application");
+
+    app.run(|app, event| {
+        ui::layout::layout_event(app, &event).expect("layout event error");
+    });
 }

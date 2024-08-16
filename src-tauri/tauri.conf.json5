@@ -1,6 +1,6 @@
 {
     productName: 'obs-studio',
-    version: '0.1.0',
+    version: '30.2.2',
     identifier: 'com.tyler.obs-studio',
     build: {
         beforeDevCommand: 'bun run dev',
@@ -9,15 +9,6 @@
         frontendDist: '../dist',
     },
     app: {
-        windows: [
-            {
-                title: 'obs-studio',
-                width: 1086,
-                height: 729,
-                skipTaskbar: false,
-                theme: 'Dark',
-            },
-        ],
         trayIcon: {
             iconPath: 'icons/obs-studio.ico',
             iconAsTemplate: true,
