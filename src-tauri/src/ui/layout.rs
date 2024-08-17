@@ -4,17 +4,18 @@ use anyhow::Ok;
 use lazy_static::lazy_static;
 use tauri::{
     webview::WebviewBuilder, window::WindowBuilder, AppHandle, LogicalPosition, LogicalSize,
-    Manager, RunEvent, WebviewUrl,
+    Manager, RunEvent, WebviewUrl, Wry,
 };
 
 use crate::{
     graphics::context::Context,
-    utils::{config::get_config, trans::t},
+    utils::{config::get_config, locale::t},
     Result,
 };
 
 lazy_static! {
     static ref WINDOW_CONTEXT: Mutex<HashMap<String, Context>> = Mutex::new(HashMap::new());
+    static ref MAIN_WINDOW: String = "main".to_string();
 }
 
 pub fn layout_event(_app: &AppHandle, event: &RunEvent) -> Result<()> {
@@ -31,7 +32,7 @@ pub fn layout_event(_app: &AppHandle, event: &RunEvent) -> Result<()> {
             }
         }
         tauri::RunEvent::MainEventsCleared => {
-            if let Some(context) = WINDOW_CONTEXT.lock().unwrap().get("main") {
+            if let Some(context) = WINDOW_CONTEXT.lock().unwrap().get(&*MAIN_WINDOW) {
                 context.render();
             }
         }
@@ -42,11 +43,11 @@ pub fn layout_event(_app: &AppHandle, event: &RunEvent) -> Result<()> {
 }
 
 pub fn setup_layout(app: &AppHandle) -> Result<()> {
-    // let window = app.get_window("main").unwrap();
     let width = 1086.;
     let height = 729.;
-    let window = WindowBuilder::new(app, "main")
+    let window = WindowBuilder::new(app, &*MAIN_WINDOW)
         .inner_size(width, height)
+        .visible(false)
         .build()?;
 
     WINDOW_CONTEXT
@@ -71,7 +72,6 @@ pub fn setup_layout(app: &AppHandle) -> Result<()> {
         LogicalSize::new(docks_width, docks_height),
     )?;
 
-    // `main` is the first window from tauri.conf.json without an explicit label
     #[cfg(debug_assertions)]
     docks.open_devtools();
 
@@ -81,7 +81,7 @@ pub fn setup_layout(app: &AppHandle) -> Result<()> {
 }
 
 pub fn update_title(app: &AppHandle) -> Result<()> {
-    let window = app.get_window("main").unwrap();
+    let window = app.get_window(&*MAIN_WINDOW).unwrap();
 
     let profile = get_config("Basic", "Profile");
     let scene_collection = get_config("Basic", "SceneCollection");

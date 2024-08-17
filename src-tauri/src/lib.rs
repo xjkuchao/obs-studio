@@ -8,12 +8,6 @@ mod utils;
 
 type Result<T> = anyhow::Result<T, anyhow::Error>;
 
-#[cfg(debug_assertions)]
-const LOG_LEVEL: log::LevelFilter = log::LevelFilter::Trace;
-
-#[cfg(not(debug_assertions))]
-const LOG_LEVEL: log::LevelFilter = log::LevelFilter::Info;
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let mut builder = tauri::Builder::default();
@@ -22,61 +16,25 @@ pub fn run() {
     builder = builder.setup(|app| {
         utils::locale::load_locales(app.app_handle())?;
         utils::config::setup_global_config(app.app_handle())?;
+
         ui::menu::setup_menus(app.app_handle())?;
         ui::tray::setup_tray(app.app_handle())?;
+
         ui::layout::setup_layout(app.app_handle())?;
 
         Ok(())
     });
 
     // 插件
+    builder = builder.plugin(utils::log::setup_log().unwrap());
     builder = builder.plugin(
-        tauri_plugin_log::Builder::new()
-            .clear_targets()
-            .targets([
-                tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Webview).filter(
-                    |metadata| {
-                        let target = metadata.target();
-                        !(target.starts_with("webview")
-                            || target.starts_with("wgpu_core::")
-                            || target.starts_with("naga::")
-                            || target.starts_with("wgpu_hal::"))
-                    },
-                ),
-                tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::LogDir {
-                    file_name: Some(chrono::Local::now().format("main_%Y-%m-%d").to_string()),
-                })
-                .filter(|metadata| {
-                    let target = metadata.target();
-
-                    !(target.starts_with("wgpu_core::")
-                        || target.starts_with("naga::")
-                        || target.starts_with("wgpu_hal::"))
-                }),
-                tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::LogDir {
-                    file_name: Some(chrono::Local::now().format("wgpu_%Y-%m-%d").to_string()),
-                })
-                .filter(|metadata| {
-                    let target = metadata.target();
-                    (target.starts_with("wgpu_core::")
-                        || target.starts_with("naga::")
-                        || target.starts_with("wgpu_hal::"))
-                        && metadata.level() <= log::Level::Info
-                }),
-            ])
-            .level(LOG_LEVEL)
-            .format(|out, message, record| {
-                out.finish(format_args!(
-                    "[{date} {level} {target}] {message}",
-                    date = chrono::Local::now().format("%m.%d %H:%M:%S"),
-                    level = record.level(),
-                    target = record.target(),
-                    message = message,
-                ))
-            })
+        tauri_plugin_window_state::Builder::default()
+            .with_state_flags(
+                tauri_plugin_window_state::StateFlags::default()
+                    - tauri_plugin_window_state::StateFlags::VISIBLE,
+            )
             .build(),
     );
-    builder = builder.plugin(tauri_plugin_window_state::Builder::default().build());
 
     // 自定义协议
     // builder = builder.register_asynchronous_uri_scheme_protocol(

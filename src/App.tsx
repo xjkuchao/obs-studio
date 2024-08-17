@@ -1,3 +1,5 @@
+import { getCurrentWindow } from '@tauri-apps/api/window';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import './App.css';
@@ -5,6 +7,10 @@ import reactLogo from './assets/react.svg';
 
 function App() {
     const { t } = useTranslation();
+
+    useEffect(() => {
+        getCurrentWindow().show();
+    }, []);
 
     return (
         <div className="container">

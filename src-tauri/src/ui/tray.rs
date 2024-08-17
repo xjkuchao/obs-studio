@@ -4,7 +4,7 @@ use tauri::{
     AppHandle, Manager, Wry,
 };
 
-use crate::{utils::trans::t, Result};
+use crate::{utils::locale::t, Result};
 
 fn setup_tray_menu(app: &AppHandle, show: bool) -> Result<Option<Menu<Wry>>> {
     let title = if show {

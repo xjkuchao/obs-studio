@@ -6,7 +6,7 @@ use tauri::{
     AppHandle, Wry,
 };
 
-use crate::{utils::trans::t, Result};
+use crate::{utils::locale::t, Result};
 
 type MenuMap = HashMap<MenuId, MenuItemKind<Wry>>;
 static MENUS: OnceLock<MenuMap> = OnceLock::new();

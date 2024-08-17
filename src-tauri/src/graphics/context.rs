@@ -78,7 +78,7 @@ impl Context {
 
     @fragment
     fn fs_main() -> @location(0) vec4<f32> {
-        return vec4<f32>(0.8, 0.9, 0.812, 1.0);
+        return vec4<f32>(1.0, 0.0, 0.0, 1.0);
     }
     "#,
             )),
