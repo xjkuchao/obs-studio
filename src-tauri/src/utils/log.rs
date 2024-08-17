@@ -3,7 +3,7 @@ use tauri::Wry;
 use crate::Result;
 
 #[cfg(debug_assertions)]
-const LOG_LEVEL: log::LevelFilter = log::LevelFilter::Trace;
+const LOG_LEVEL: log::LevelFilter = log::LevelFilter::Debug;
 
 #[cfg(not(debug_assertions))]
 const LOG_LEVEL: log::LevelFilter = log::LevelFilter::Info;
@@ -15,7 +15,9 @@ pub fn setup_log() -> Result<tauri::plugin::TauriPlugin<Wry>> {
             tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Webview).filter(
                 |metadata| {
                     let target = metadata.target();
+
                     !(target.starts_with("webview")
+                        || target.starts_with("log@")
                         || target.starts_with("wgpu_core::")
                         || target.starts_with("naga::")
                         || target.starts_with("wgpu_hal::"))
@@ -26,7 +28,6 @@ pub fn setup_log() -> Result<tauri::plugin::TauriPlugin<Wry>> {
             })
             .filter(|metadata| {
                 let target = metadata.target();
-
                 !(target.starts_with("wgpu_core::")
                     || target.starts_with("naga::")
                     || target.starts_with("wgpu_hal::"))

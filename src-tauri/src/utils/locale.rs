@@ -11,7 +11,7 @@ use tauri::{AppHandle, Manager};
 
 use crate::Result;
 
-pub type LocaleMap = HashMap<String, HashMap<String, HashMap<String, Option<String>>>>;
+pub type LocaleMap = HashMap<String, HashMap<String, Option<String>>>;
 pub static LOCALES: OnceLock<LocaleMap> = OnceLock::new();
 
 static CURRENT_LOCALE: OnceLock<Mutex<String>> = OnceLock::new();
@@ -95,9 +95,10 @@ pub fn load_locales(app: &AppHandle) -> Result<()> {
 
             // debug!("messages: {} {:?}", key, messages);
 
-            let mut namespace: HashMap<String, HashMap<String, Option<String>>> = HashMap::new();
-            namespace.insert("translation".to_string(), messages);
-            locale_messages.insert(key, namespace);
+            // react i18next 才有namespace，vue不需要
+            // let mut namespace: HashMap<String, HashMap<String, Option<String>>> = HashMap::new();
+            // namespace.insert("translation".to_string(), messages);
+            locale_messages.insert(key, messages);
         }
 
         locale_messages
@@ -108,7 +109,13 @@ pub fn load_locales(app: &AppHandle) -> Result<()> {
 
 pub fn get_locale() -> Result<String> {
     let current_locale = CURRENT_LOCALE.get_or_init(|| {
-        let locale = sys_locale::get_locale().unwrap_or_else(|| String::from("en-US"));
+        let mut locale = sys_locale::get_locale().unwrap_or_else(|| String::from("en-US"));
+
+        // MacOS uses zh-Hans-CN, but we need zh-CN
+        if locale == "zh-Hans-CN" {
+            locale = "zh-CN".to_string();
+        }
+
         Mutex::new(locale)
     });
 
@@ -146,12 +153,12 @@ pub fn t(key: &str) -> Result<String> {
         None => return Ok(key.to_string()),
     };
 
-    let messages = match locale.get("translation") {
-        Some(messages) => messages,
-        None => return Ok(key.to_string()),
-    };
+    // let messages = match locale.get("translation") {
+    //     Some(messages) => messages,
+    //     None => return Ok(key.to_string()),
+    // };
 
-    match messages.get(key) {
+    match locale.get(key) {
         Some(message) => Ok(message.clone().unwrap_or(key.to_string())),
         None => Ok(key.to_string()),
     }

@@ -20,7 +20,7 @@
     bundle: {
         active: true,
         targets: 'all',
-        icon: ['icons/obs-studio.ico'],
-        resources: ['resources/*'],
+        icon: ['icons/obs-studio.ico', 'icons/AppIcon.icns'],
+        resources: ['resources/**/*'],
     },
 }

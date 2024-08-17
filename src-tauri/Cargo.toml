@@ -12,7 +12,7 @@ name = "obs"
 crate-type = ["lib", "cdylib", "staticlib"]
 
 [build-dependencies]
-tauri-build = { version = "2.0.0-rc.2", features = [] }
+tauri-build = { version = "2.0.0-rc.3", features = [] }
 
 [dependencies]
 thiserror = "^1.0"
@@ -25,8 +25,8 @@ sys-locale = "^0.3"
 configparser = "^3.1"
 
 tokio = { version = "^1.39", features = ["full"] }
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+serde = { version = "^1.0", features = ["derive"] }
+serde_json = "^1.0"
 
 bytemuck = { version = "^1.17", features = ["derive"] }
 glam = "^0.28"
@@ -36,10 +36,10 @@ image = { version = "^0.25", default-features = false, features = [
 ] }
 
 wgpu = { version = "^22.1", features = [] }
-tauri = { version = "2.0.0-rc.2", features = [
+tauri = { version = "2.0.0-rc.3", features = [
     "config-json5",
     "tray-icon",
     "unstable",
 ] }
 tauri-plugin-log = "2.0.0-rc.0"
-tauri-plugin-window-state = "2.0.0-rc.0"
+tauri-plugin-window-state = "2.0.0-rc.1"

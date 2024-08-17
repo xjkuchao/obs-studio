@@ -45,9 +45,15 @@ pub fn layout_event(_app: &AppHandle, event: &RunEvent) -> Result<()> {
 pub fn setup_layout(app: &AppHandle) -> Result<()> {
     let width = 1086.;
     let height = 729.;
+
+    #[cfg(not(target_os = "macos"))]
     let window = WindowBuilder::new(app, &*MAIN_WINDOW)
         .inner_size(width, height)
         .visible(false)
+        .build()?;
+    #[cfg(target_os = "macos")]
+    let window = WindowBuilder::new(app, &*MAIN_WINDOW)
+        .inner_size(width, height)
         .build()?;
 
     WINDOW_CONTEXT

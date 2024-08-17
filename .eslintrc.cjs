@@ -1,16 +1,13 @@
 module.exports = {
     root: true, // 表示当前目录即为根目录，ESLint 规则将被限制到该目录下
-    env: { browser: true, es2020: true, node: true },
-    /* 解析器 */
-    parser: '@typescript-eslint/parser', // 指定ESLint解析器
+    env: { browser: true, es2020: true, node: true } /* 解析器 */,
+    parser: 'vue-eslint-parser', // 指定ESLint解析器
     parserOptions: {
         project: './tsconfig.json', // tsconfig.json的路径
         ecmaVersion: 'latest',
         sourceType: 'module',
-        ecmaFeatures: {
-            jsx: true, // 启用JSX
-        },
-        extraFileExtensions: ['.json'],
+        parser: '@typescript-eslint/parser',
+        extraFileExtensions: ['.json', '.vue'],
     },
     settings: {
         // 识别 @ # alias
@@ -20,37 +17,24 @@ module.exports = {
                     ['@', './src'],
                     ['#', './types'],
                 ],
-                extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
+                extensions: ['.ts', '.js', '.vue', '.json'],
             },
         },
-        react: {
-            version: 'detect',
-        },
-    },
-    /* ESLint 中基础配置需要继承的配置 */
+    } /* ESLint 中基础配置需要继承的配置 */,
     extends: [
-        'typescript',
-        'typescript/react',
         'eslint:recommended',
-        'plugin:react/recommended',
-        'plugin:@typescript-eslint/recommended', // 使用@typescript-eslint/eslint-plugin推荐的规则
-        'plugin:jsx-a11y/recommended',
+        'plugin:vue/vue3-essential',
+        'plugin:@typescript-eslint/recommended-type-checked', // @typescript-eslint @v6
+        'plugin:@typescript-eslint/stylistic-type-checked', // @typescript-eslint @v6
+        // 'plugin:@typescript-eslint/recommended',                          // @typescript-eslint @v5
+        // 'plugin:@typescript-eslint/recommended-requiring-type-checking',  // @typescript-eslint @v5
         'plugin:import/errors',
         'plugin:import/warnings',
         'plugin:import/typescript',
         'prettier', // 增加 prettier 相关的校验规则
         'plugin:prettier/recommended', // 开启 Prettier 插件推荐的规则
-    ],
-    /* ESLint文件所依赖的插件 */
-    plugins: [
-        '@typescript-eslint',
-        'prettier',
-        'react',
-        'react-hooks',
-        'jsx-a11y',
-        'import',
-        'unused-imports',
-    ],
+    ] /* ESLint文件所依赖的插件 */,
+    plugins: ['@typescript-eslint', 'prettier', 'vue', 'import', 'unused-imports'],
     /**
      * 定义规则
      * "off" 或 0 - 关闭规则
@@ -66,23 +50,16 @@ module.exports = {
         'space-before-function-paren': 'off',
         'class-methods-use-this': 'off',
 
-        'jsx-a11y/no-autofocus': 'off',
-        'jsx-a11y/click-events-have-key-events': 'off',
-        'jsx-a11y/interactive-supports-focus': 'off',
-        'jsx-a11y/no-noninteractive-element-interactions': 'off',
-        'jsx-a11y/no-static-element-interactions': 'off',
-
-        // 不用手动引入react
-        'react/display-name': 'off',
-        'react/react-in-jsx-scope': 'off',
-        'react/button-has-type': 'off',
-        'react/require-default-props': 'off',
-        'react/no-array-index-key': 'off',
-        'react/jsx-props-no-spreading': 'off',
+        'vue/html-indent': ['error', 4], //在<template>中强制一致缩进
+        'vue/singleline-html-element-content-newline': 'off', //要求在单行元素的内容之前和之后有一个换行符
+        'vue/max-attributes-per-line': 'off', //执行每行的最大属性数(被 prettier 最大单行控制了暂off)
+        'vue/multi-word-component-names': 'off', //要求组件名称始终为多字
+        'vue/html-self-closing': 'off', //执行自我封闭式
 
         'import/first': 'warn',
         'import/newline-after-import': 'warn',
         'import/no-duplicates': 'warn',
+        'import/no-unresolved': 'off',
         'import/no-extraneous-dependencies': 'off',
         'import/prefer-default-export': 'off',
         'import/order': [
@@ -122,12 +99,6 @@ module.exports = {
             },
         ],
 
-        // 'unused-imports/no-unused-imports-ts': 'warn',
-        // 'unused-imports/no-unused-vars-ts': [
-        //     'warn',
-        //     { vars: 'all', varsIgnorePattern: '^_', args: 'after-used', argsIgnorePattern: '^_' },
-        // ],
-
         '@typescript-eslint/no-unused-vars': [
             'warn',
             {
@@ -136,6 +107,12 @@ module.exports = {
             },
         ],
         '@typescript-eslint/no-unused-expressions': 'off',
+        '@typescript-eslint/no-unsafe-assignment': 'off',
+        '@typescript-eslint/no-unsafe-argument': 'off',
+        '@typescript-eslint/no-unsafe-return': 'off',
+        '@typescript-eslint/no-unsafe-call': 'off',
+        '@typescript-eslint/no-unsafe-member-access': 'off',
+        '@typescript-eslint/no-unsafe-enum-comparison': 'off',
         '@typescript-eslint/ban-ts-ignore': 'off',
         '@typescript-eslint/ban-ts-comment': 'off',
         '@typescript-eslint/ban-types': 'off',
@@ -146,6 +123,32 @@ module.exports = {
         '@typescript-eslint/no-use-before-define': 'off',
         '@typescript-eslint/no-non-null-assertion': 'off',
         '@typescript-eslint/no-shadow': 'off',
+        '@typescript-eslint/no-floating-promises': 'off',
         '@typescript-eslint/explicit-module-boundary-types': 'off',
     },
+    globals: {
+        //可以定义全局中的变量的权限（只读，可读可写）
+        defineProps: 'readonly',
+        defineEmits: 'readonly',
+        defineExpose: 'readonly',
+        withDefaults: 'readonly',
+        uni: 'readonly',
+    },
+    ignorePatterns: [
+        // # 忽略目录
+        '/dist',
+        '/public',
+        '/src/public',
+        '/src/static',
+        '/node_modules',
+        // # 忽略文件
+        '**/*-min.js',
+        '**/*.min.js',
+        '**/*-min.css',
+        '**/*.min.css',
+        '**/*.tsbuildinfo',
+        '**/*.config.js',
+        '**/*.config.ts',
+        '/src/manifest.json',
+    ],
 };
