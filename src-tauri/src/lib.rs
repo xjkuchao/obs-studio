@@ -1,6 +1,7 @@
 use tauri::Manager;
 
 mod cmds;
+mod graphics;
 mod protocols;
 mod ui;
 mod utils;
