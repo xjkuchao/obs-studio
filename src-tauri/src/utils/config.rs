@@ -1,50 +1,46 @@
-use std::{
-    collections::HashMap,
-    sync::{Mutex, OnceLock},
-};
+use std::path::PathBuf;
+use std::sync::{Mutex, OnceLock};
 
 use anyhow::anyhow;
-use configparser::ini::Ini;
+use ini::Ini;
 use log::error;
 use tauri::{AppHandle, Manager};
 
+use crate::utils::dialog::message;
 use crate::Result;
 
-pub type ConfigMap = HashMap<String, HashMap<String, Option<String>>>;
-pub static GLOBAL_CONFIG: OnceLock<Mutex<ConfigMap>> = OnceLock::new();
+static GLOBAL_FILE: OnceLock<PathBuf> = OnceLock::new();
+static GLOBAL_CONFIG: OnceLock<Mutex<Ini>> = OnceLock::new();
 
 pub fn setup_global_config(app: &AppHandle) -> Result<()> {
-    GLOBAL_CONFIG.get_or_init(|| {
-        let mut global_config: ConfigMap = HashMap::new();
-        let global_file = match app
+    GLOBAL_FILE.get_or_init(|| {
+        match app
             .path()
             .resolve("global.ini", tauri::path::BaseDirectory::AppLocalData)
         {
             Ok(global_file) => global_file,
             Err(e) => {
-                error!("global.ini file not found {}", e);
-                return Mutex::new(HashMap::new());
+                message(
+                    app,
+                    "error",
+                    "Error",
+                    format!("global.ini {}", e).as_str(),
+                    1,
+                );
+                panic!("global.ini file path not found {}", e);
             }
-        };
-
-        let mut config = Ini::new_cs();
-        let globals = match config.load(&global_file) {
-            Ok(globals) => globals,
-            Err(e) => {
-                error!("failed to load global.ini: {}", e);
-                return Mutex::new(HashMap::new());
-            }
-        };
-
-        for (key, value) in globals {
-            // debug!("globals: {} {:?}", key, value);
-
-            global_config.insert(key, value.clone());
         }
+    });
 
-        // debug!("globals: {:?}", global_config);
+    GLOBAL_CONFIG.get_or_init(|| {
+        let config = match Ini::load_from_file(GLOBAL_FILE.get().unwrap()) {
+            Ok(config) => config,
+            Err(_) => Ini::new(),
+        };
 
-        Mutex::new(global_config)
+        // debug!("globals: {:?}", config);
+
+        Mutex::new(config)
     });
 
     Ok(())
@@ -52,10 +48,10 @@ pub fn setup_global_config(app: &AppHandle) -> Result<()> {
 
 pub fn get_config(section: &str, key: &str) -> Option<String> {
     match GLOBAL_CONFIG.get() {
-        Some(global_config) => match global_config.lock() {
-            Ok(global_config) => match global_config.get(section) {
+        Some(mutex) => match mutex.lock() {
+            Ok(config) => match config.section(Some(section)) {
                 Some(section) => match section.get(key) {
-                    Some(value) => value.clone(),
+                    Some(value) => Some(value.to_string()),
                     None => None,
                 },
                 None => None,
@@ -71,19 +67,16 @@ pub fn get_config(section: &str, key: &str) -> Option<String> {
 
 pub fn set_config(section: &str, key: &str, value: &str) -> Result<()> {
     match GLOBAL_CONFIG.get() {
-        Some(global_config) => match global_config.lock() {
-            Ok(mut global_config) => match global_config.get_mut(section) {
-                Some(section) => {
-                    section.insert(key.to_string(), Some(value.to_string()));
-                    Ok(())
+        Some(mutex) => match mutex.lock() {
+            Ok(mut config) => {
+                config
+                    .with_section(Some(section))
+                    .set(key, value.to_string());
+                match config.write_to_file(&GLOBAL_FILE.get().unwrap()) {
+                    Ok(_) => Ok(()),
+                    Err(e) => Err(anyhow!("failed to write global config: {}", e)),
                 }
-                None => {
-                    let mut section_value = HashMap::new();
-                    section_value.insert(key.to_string(), Some(value.to_string()));
-                    global_config.insert(section.to_string(), section_value);
-                    Ok(())
-                }
-            },
+            }
             Err(e) => Err(anyhow!("failed to lock global config: {}", e)),
         },
         None => Err(anyhow!("global config not initialized")),

@@ -5,10 +5,10 @@ use std::{
 };
 
 use anyhow::anyhow;
-use configparser::ini::Ini;
-use log::error;
+use ini::Ini;
 use tauri::{AppHandle, Manager};
 
+use crate::utils::dialog::message;
 use crate::Result;
 
 pub type LocaleMap = HashMap<String, HashMap<String, Option<String>>>;
@@ -25,81 +25,88 @@ pub fn load_locales(app: &AppHandle) -> Result<()> {
         {
             Ok(locales_file) => locales_file,
             Err(e) => {
-                error!("locale.ini file not found {}", e);
-                return HashMap::new();
-            }
-        };
-
-        let mut config = Ini::new_cs();
-        let settings = match config.load(&locales_file) {
-            Ok(settings) => settings,
-            Err(e) => {
-                error!("failed to load locale.ini: {}", e);
-                return HashMap::new();
-            }
-        };
-
-        for (key, _setting) in settings {
-            // debug!("setting: {} {:?}", key, setting);
-
-            let local_file_name = PathBuf::from("resources/locale").join(key.clone() + ".ini");
-            let locale_file = match app.path().resolve(
-                local_file_name.clone(),
-                tauri::path::BaseDirectory::Resource,
-            ) {
-                Ok(locale_file) => locale_file,
-                Err(e) => {
-                    error!(
-                        "locale file not found: {}: {}",
-                        local_file_name.display(),
-                        e
-                    );
-                    return HashMap::new();
-                }
-            };
-
-            // debug!("locale file: {}", locale_file.display());
-
-            let mut config = Ini::new_cs();
-            let local_message = match config.load(&locale_file) {
-                Ok(local_message) => local_message,
-                Err(e) => {
-                    error!(
-                        "failed to load locale file: {}: {}",
-                        local_file_name.display(),
-                        e
-                    );
-                    return HashMap::new();
-                }
-            };
-
-            if !local_message.contains_key("default") {
-                error!(
-                    "locale file does not contain default section: {}",
-                    local_file_name.display()
+                message(
+                    app,
+                    "error",
+                    "Error",
+                    format!("resources/locale.ini {}", e).as_str(),
+                    1,
                 );
-                return HashMap::new();
+                panic!("locale.ini file not found {}", e);
+            }
+        };
+
+        let config = match Ini::load_from_file(&locales_file) {
+            Ok(config) => config,
+            Err(e) => {
+                message(
+                    app,
+                    "error",
+                    "Error",
+                    format!("resources/locale.ini {}", e).as_str(),
+                    1,
+                );
+                panic!("failed to load locale.ini: {}", e);
+            }
+        };
+
+        config.sections().all(|section| {
+            if section.is_some() {
+                let local_file_name =
+                    PathBuf::from("resources/locale").join(section.unwrap().to_string() + ".ini");
+                let locale_file = match app.path().resolve(
+                    local_file_name.clone(),
+                    tauri::path::BaseDirectory::Resource,
+                ) {
+                    Ok(locale_file) => locale_file,
+                    Err(e) => {
+                        message(
+                            app,
+                            "error",
+                            "Error",
+                            format!("{} {}", local_file_name.display(), e).as_str(),
+                            1,
+                        );
+                        panic!(
+                            "locale file not found: {}: {}",
+                            local_file_name.display(),
+                            e
+                        );
+                    }
+                };
+
+                let local_config = match Ini::load_from_file(&locale_file) {
+                    Ok(local_config) => local_config,
+                    Err(e) => {
+                        message(
+                            app,
+                            "error",
+                            "Error",
+                            format!("{} {}", local_file_name.display(), e).as_str(),
+                            1,
+                        );
+                        panic!(
+                            "failed to load locale file: {}: {}",
+                            local_file_name.display(),
+                            e
+                        );
+                    }
+                };
+
+                let mut messages = HashMap::new();
+                local_config.general_section().iter().all(|(key, value)| {
+                    let key = key.to_string();
+                    let value = value.trim_matches('"').to_string();
+
+                    messages.insert(key, Some(value));
+
+                    true
+                });
+                locale_messages.insert(section.unwrap().to_string(), messages);
             }
 
-            let messages: HashMap<String, Option<String>> = local_message["default"]
-                .clone()
-                .into_iter()
-                .filter_map(|(k, v)| {
-                    if v.is_none() {
-                        Some((k.clone(), Some("".to_string())))
-                    } else {
-                        Some((k.clone(), Some(v.unwrap().trim_matches('"').to_string())))
-                    }
-                })
-                .collect();
-
-            // debug!("messages: {} {:?}", key, messages);
-
-            // react i18next 才有namespace，vue不需要
-            // let mut namespace: HashMap<String, HashMap<String, Option<String>>> = HashMap::new();
-            // namespace.insert("translation".to_string(), messages);
-            locale_messages.insert(key, messages);
-        }
+            true
+        });
 
         locale_messages
     });

@@ -9,8 +9,7 @@ use tauri::{
 
 use crate::{
     graphics::context::Context,
-    utils::cli::cli,
-    utils::{config::get_config, locale::t},
+    utils::{cli::cli, config::get_config, locale::t},
     Result, MAIN_WINDOW_ID,
 };
 
