@@ -23,4 +23,93 @@
         icon: ['icons/obs-studio.ico', 'icons/AppIcon.icns'],
         resources: ['resources/**/*'],
     },
+    plugins: {
+        cli: {
+            description: 'Free and open source software for video recording and live streaming',
+            args: [
+                {
+                    name: 'verbose',
+                    description: 'Make log more verbose.',
+                },
+                {
+                    short: 'm',
+                    name: 'multi',
+                    description: "Don't warn when launching multiple instances.",
+                },
+                {
+                    name: 'safe-mode',
+                    description: 'Run in Safe Mode (disables third-party plugins, scripting, and WebSockets).',
+                },
+                {
+                    name: 'only-bundled-plugins',
+                    description: 'Only load included (first-party) plugins',
+                },
+                {
+                    name: 'disable-shutdown-check',
+                    description: 'Disable unclean shutdown detection.',
+                },
+                {
+                    name: 'always-on-top',
+                    description: "Start in 'always on top' mode.",
+                },
+                {
+                    name: 'unfiltered_log',
+                    description: 'Make log unfiltered.',
+                },
+                {
+                    name: 'disable-updater',
+                    description: 'Disable built-in updater (Windows/Mac only)',
+                },
+                {
+                    name: 'disable-missing-files-check',
+                    description: 'Disable the missing files dialog which can appear on startup.',
+                },
+                {
+                    name: 'startstreaming',
+                    description: 'Automatically start streaming.',
+                },
+                {
+                    name: 'startrecording',
+                    description: 'Automatically start recording.',
+                },
+                {
+                    name: 'startreplaybuffer',
+                    description: 'Start replay buffer.',
+                },
+                {
+                    name: 'startvirtualcam',
+                    description: 'Start virtual camera (if available).',
+                },
+                {
+                    name: 'collection',
+                    description: 'Use specific scene collection.',
+                },
+                {
+                    name: 'profile',
+                    description: 'Use specific profile.',
+                },
+                {
+                    name: 'scene',
+                    description: 'Start with specific scene.',
+                },
+                {
+                    name: 'studio-mode',
+                    description: 'Enable studio mode.',
+                },
+                {
+                    name: 'minimize-to-tray',
+                    description: 'Minimize to system tray.',
+                },
+                {
+                    name: 'allow-opengl',
+                    description: 'Allow OpenGL rendering.',
+                },
+                {
+                    short: 'p',
+                    name: 'portable',
+                    description: 'Use portable mode.',
+                },
+            ],
+        },
+    },
 }

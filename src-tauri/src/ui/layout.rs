@@ -4,21 +4,21 @@ use anyhow::Ok;
 use lazy_static::lazy_static;
 use tauri::{
     webview::WebviewBuilder, window::WindowBuilder, AppHandle, LogicalPosition, LogicalSize,
-    Manager, RunEvent, WebviewUrl, Wry,
+    Manager, RunEvent, Theme, WebviewUrl,
 };
 
 use crate::{
     graphics::context::Context,
+    utils::cli::cli,
     utils::{config::get_config, locale::t},
-    Result,
+    Result, MAIN_WINDOW_ID,
 };
 
 lazy_static! {
     static ref WINDOW_CONTEXT: Mutex<HashMap<String, Context>> = Mutex::new(HashMap::new());
-    static ref MAIN_WINDOW: String = "main".to_string();
 }
 
-pub fn layout_event(_app: &AppHandle, event: &RunEvent) -> Result<()> {
+pub fn layout_event(app: &AppHandle, event: &RunEvent) -> Result<()> {
     match event {
         tauri::RunEvent::WindowEvent { label, event, .. } => {
             if let Some(context) = WINDOW_CONTEXT.lock().unwrap().get_mut(label) {
@@ -26,13 +26,21 @@ pub fn layout_event(_app: &AppHandle, event: &RunEvent) -> Result<()> {
                     tauri::WindowEvent::Resized(size) => {
                         context.resize(size);
                     }
+                    tauri::WindowEvent::CloseRequested { api, .. } => {
+                        if cli()?.opt_minimize_tray {
+                            let window = app.get_window(label).unwrap();
+
+                            api.prevent_close();
+                            window.hide()?;
+                        }
+                    }
 
                     _ => {}
                 }
             }
         }
         tauri::RunEvent::MainEventsCleared => {
-            if let Some(context) = WINDOW_CONTEXT.lock().unwrap().get(&*MAIN_WINDOW) {
+            if let Some(context) = WINDOW_CONTEXT.lock().unwrap().get(MAIN_WINDOW_ID) {
                 context.render();
             }
         }
@@ -47,14 +55,21 @@ pub fn setup_layout(app: &AppHandle) -> Result<()> {
     let height = 729.;
 
     #[cfg(not(target_os = "macos"))]
-    let window = WindowBuilder::new(app, &*MAIN_WINDOW)
+    let window = WindowBuilder::new(app, MAIN_WINDOW_ID)
         .inner_size(width, height)
+        .theme(Some(Theme::Dark))
         .visible(false)
         .build()?;
     #[cfg(target_os = "macos")]
-    let window = WindowBuilder::new(app, &*MAIN_WINDOW)
+    let window = WindowBuilder::new(app, MAIN_WINDOW_ID)
         .inner_size(width, height)
+        .theme(Some(Theme::Dark))
         .build()?;
+
+    let cli = cli()?;
+    if cli.opt_always_on_top {
+        window.set_always_on_top(true)?;
+    }
 
     WINDOW_CONTEXT
         .lock()
@@ -87,7 +102,7 @@ pub fn setup_layout(app: &AppHandle) -> Result<()> {
 }
 
 pub fn update_title(app: &AppHandle) -> Result<()> {
-    let window = app.get_window(&*MAIN_WINDOW).unwrap();
+    let window = app.get_window(MAIN_WINDOW_ID).unwrap();
 
     let profile = get_config("Basic", "Profile");
     let scene_collection = get_config("Basic", "SceneCollection");

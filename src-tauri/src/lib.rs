@@ -8,13 +8,21 @@ mod utils;
 
 type Result<T> = anyhow::Result<T, anyhow::Error>;
 
+pub const MAIN_WINDOW_ID: &str = "main";
+pub const MAIN_TRAY_ID: &str = "main";
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let mut builder = tauri::Builder::default();
 
+    builder = builder.plugin(tauri_plugin_cli::init());
+
     // 初始化
     builder = builder.setup(|app| {
         utils::locale::load_locales(app.app_handle())?;
+
+        utils::cli::setup_cli(app.app_handle())?;
+
         utils::config::setup_global_config(app.app_handle())?;
 
         ui::menu::setup_menus(app.app_handle())?;

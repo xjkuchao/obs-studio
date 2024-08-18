@@ -4,7 +4,7 @@ use tauri::{
     AppHandle, Manager, Wry,
 };
 
-use crate::{utils::locale::t, Result};
+use crate::{utils::locale::t, Result, MAIN_TRAY_ID, MAIN_WINDOW_ID};
 
 fn setup_tray_menu(app: &AppHandle, show: bool) -> Result<Option<Menu<Wry>>> {
     let title = if show {
@@ -26,8 +26,8 @@ fn setup_tray_menu(app: &AppHandle, show: bool) -> Result<Option<Menu<Wry>>> {
 }
 
 fn toggle_main_window(app: &AppHandle) {
-    let main_window = app.get_window("main").unwrap();
-    let system_tray = app.tray_by_id("main").unwrap();
+    let main_window = app.get_window(MAIN_WINDOW_ID).unwrap();
+    let system_tray = app.tray_by_id(MAIN_TRAY_ID).unwrap();
 
     if main_window.is_visible().unwrap() {
         system_tray
@@ -46,7 +46,7 @@ fn toggle_main_window(app: &AppHandle) {
 }
 
 pub fn setup_tray(app: &AppHandle) -> Result<()> {
-    let system_tray = match app.tray_by_id("main") {
+    let system_tray = match app.tray_by_id(MAIN_TRAY_ID) {
         Some(tray) => tray,
         None => return Ok(()),
     };
@@ -65,7 +65,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<()> {
     });
 
     system_tray.on_tray_icon_event(|tray, event| {
-        if event.id() == "main" {
+        if event.id() == MAIN_TRAY_ID {
             match event {
                 TrayIconEvent::Click {
                     button,
