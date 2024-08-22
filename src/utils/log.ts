@@ -4,13 +4,13 @@ import dayjs from 'dayjs';
 
 function formatMessage(...data: any[]): string {
     let str = '';
-    for (let i = 0; i < data.length; i++) {
-        if (typeof data[i] === 'object') {
-            str += JSON.stringify(data[i]) + ' ';
+    data.forEach((value) => {
+        if (typeof value === 'object') {
+            str += JSON.stringify(value) + ' ';
         } else {
-            str += data[i] + ' ';
+            str += value + ' ';
         }
-    }
+    });
     return str;
 }
 

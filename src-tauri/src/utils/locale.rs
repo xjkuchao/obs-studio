@@ -8,8 +8,7 @@ use anyhow::anyhow;
 use ini::Ini;
 use tauri::{AppHandle, Manager};
 
-use crate::utils::dialog::message;
-use crate::Result;
+use crate::{utils::dialog::message, Result};
 
 pub type LocaleMap = HashMap<String, HashMap<String, Option<String>>>;
 pub static LOCALES: OnceLock<LocaleMap> = OnceLock::new();

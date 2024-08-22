@@ -1,13 +1,14 @@
-use std::path::PathBuf;
-use std::sync::{Mutex, OnceLock};
+use std::{
+    path::PathBuf,
+    sync::{Mutex, OnceLock},
+};
 
 use anyhow::anyhow;
 use ini::Ini;
 use log::error;
 use tauri::{AppHandle, Manager};
 
-use crate::utils::dialog::message;
-use crate::Result;
+use crate::{utils::dialog::message, Result};
 
 static GLOBAL_FILE: OnceLock<PathBuf> = OnceLock::new();
 static GLOBAL_CONFIG: OnceLock<Mutex<Ini>> = OnceLock::new();

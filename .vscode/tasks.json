@@ -13,7 +13,7 @@
                 "revealProblems": "onProblem",
                 "showReuseMessage": false,
                 "clear": true,
-                "close": true
+                "close": false
             }
         },
         {
@@ -21,6 +21,20 @@
             "type": "shell",
             "command": "bun",
             "args": ["build"],
+            "presentation": {
+                "reveal": "silent",
+                "revealProblems": "onProblem",
+                "showReuseMessage": false,
+                "clear": true,
+                "close": true
+            }
+        },
+        {
+            "label": "cargo:build",
+            "command": "cargo",
+            "args": ["build"],
+            "group": "build",
+            "problemMatcher": "$rustc",
             "presentation": {
                 "reveal": "silent",
                 "revealProblems": "onProblem",

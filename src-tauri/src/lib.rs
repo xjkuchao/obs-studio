@@ -61,7 +61,8 @@ pub fn run() {
 
     // 事件
     builder = builder.invoke_handler(tauri::generate_handler![
-        cmds::locale::get_default_locale,
+        cmds::locale::get_locale,
+        cmds::locale::set_locale,
         cmds::locale::get_locale_messages
     ]);
 

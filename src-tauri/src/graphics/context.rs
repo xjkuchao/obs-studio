@@ -1,5 +1,4 @@
-use std::borrow::Cow;
-use std::sync::Arc;
+use std::{borrow::Cow, sync::Arc};
 
 use anyhow::Ok;
 use tauri::{AppHandle, PhysicalSize, Window};

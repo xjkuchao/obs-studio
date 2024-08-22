@@ -10,13 +10,13 @@ await setupConsole();
 
 const localeMessages: Record<string, Record<string, string>> = await invoke('get_locale_messages');
 const supportedLocales: string[] = Object.keys(localeMessages);
-const defaultLocale: string = await invoke('get_default_locale');
+const currentLocale: string = await invoke('get_locale');
 
-console.debug('Supported locales:', supportedLocales);
-console.debug('Default locale:', defaultLocale);
+console.debug('Supported Locales:', supportedLocales);
+console.debug('Current Locale:', currentLocale);
 
 const i18n = createI18n({
-    locale: defaultLocale,
+    locale: currentLocale,
     fallbackLocale: 'en-US',
     availableLocales: supportedLocales,
     messages: localeMessages,
