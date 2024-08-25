@@ -1,3 +1,4 @@
+/// CLI 相关功能模块
 use std::sync::OnceLock;
 
 use tauri::AppHandle;
@@ -5,6 +6,7 @@ use tauri_plugin_cli::CliExt;
 
 use crate::Result;
 
+/// CLI 选项结构体
 #[derive(Debug, Clone)]
 pub struct CliOptions {
     pub portable_mode: bool,
@@ -29,8 +31,18 @@ pub struct CliOptions {
     pub opt_starting_scene: Option<String>,
 }
 
+/// 全局静态 CLI 选项
 static CLI: OnceLock<CliOptions> = OnceLock::new();
 
+/// 设置 CLI 选项
+///
+/// # 参数
+///
+/// * `app` - 应用程序句柄
+///
+/// # 返回值
+///
+/// 返回 `Result<()>`，表示操作是否成功
 pub fn setup_cli(app: &AppHandle) -> Result<()> {
     let mut portable_mode: bool = false;
     let mut safe_mode: bool = false;
@@ -157,6 +169,11 @@ pub fn setup_cli(app: &AppHandle) -> Result<()> {
     Ok(())
 }
 
+/// 获取 CLI 选项
+///
+/// # 返回值
+///
+/// 返回 `Result<CliOptions>`，表示获取的 CLI 选项
 pub fn cli() -> Result<CliOptions> {
     Ok(CLI.get().unwrap().clone())
 }

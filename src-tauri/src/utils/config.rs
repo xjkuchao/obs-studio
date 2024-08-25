@@ -1,3 +1,4 @@
+/// 全局配置模块
 use std::{
     path::PathBuf,
     sync::{Mutex, OnceLock},
@@ -10,9 +11,20 @@ use tauri::{AppHandle, Manager};
 
 use crate::{utils::dialog::message, Result};
 
+/// 全局配置文件路径
 static GLOBAL_FILE: OnceLock<PathBuf> = OnceLock::new();
+/// 全局配置对象
 static GLOBAL_CONFIG: OnceLock<Mutex<Ini>> = OnceLock::new();
 
+/// 设置全局配置
+///
+/// # 参数
+///
+/// * `app` - 应用程序句柄
+///
+/// # 返回值
+///
+/// 返回 `Result<()>`，表示操作是否成功
 pub fn setup_global_config(app: &AppHandle) -> Result<()> {
     GLOBAL_FILE.get_or_init(|| {
         match app
@@ -47,6 +59,16 @@ pub fn setup_global_config(app: &AppHandle) -> Result<()> {
     Ok(())
 }
 
+/// 获取配置项的值
+///
+/// # 参数
+///
+/// * `section` - 配置节名
+/// * `key` - 配置项名
+///
+/// # 返回值
+///
+/// 返回 `Option<String>`，表示配置项的值
 pub fn get_config(section: &str, key: &str) -> Option<String> {
     match GLOBAL_CONFIG.get() {
         Some(mutex) => match mutex.lock() {
@@ -66,6 +88,17 @@ pub fn get_config(section: &str, key: &str) -> Option<String> {
     }
 }
 
+/// 设置配置项的值
+///
+/// # 参数
+///
+/// * `section` - 配置节名
+/// * `key` - 配置项名
+/// * `value` - 配置项的值
+///
+/// # 返回值
+///
+/// 返回 `Result<()>`，表示操作是否成功
 pub fn set_config(section: &str, key: &str, value: &str) -> Result<()> {
     match GLOBAL_CONFIG.get() {
         Some(mutex) => match mutex.lock() {

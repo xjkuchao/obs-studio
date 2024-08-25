@@ -4,50 +4,60 @@ use tauri::Window;
 
 use crate::Result;
 
+/// 表示图形设备的结构体
 pub struct Device {
+    /// 渲染表面
     surface: wgpu::Surface<'static>,
+    /// 逻辑设备
     device: wgpu::Device,
+    /// 命令队列
     queue: wgpu::Queue,
-    // render_pipeline: wgpu::RenderPipeline,
+    /// 表面配置
     config: wgpu::SurfaceConfiguration,
 }
 
 impl Device {
+    /// 创建新的图形设备
+    ///
+    /// # 参数
+    ///
+    /// * `window` - 与设备关联的窗口
+    ///
+    /// # 返回值
+    ///
+    /// 返回 `Result<Self>`，成功时包含新创建的 `Device` 实例
     pub fn new(window: Arc<Window>) -> Result<Self> {
+        // 获取窗口大小
         let size = window.inner_size()?;
 
-        // The instance is a handle to our GPU
-        // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
+        // 创建 wgpu 实例
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: wgpu::Backends::all(),
             ..Default::default()
         });
 
-        // The surface needs to live as long as the window that created it.
-        // State owns the window so this should be safe.
+        // 创建渲染表面
         let surface = instance.create_surface(window.clone())?;
 
+        // 异步请求适配器
         let adapter = tauri::async_runtime::block_on(async {
             instance
                 .request_adapter(&wgpu::RequestAdapterOptions {
                     power_preference: wgpu::PowerPreference::default(),
                     force_fallback_adapter: false,
-                    // Request an adapter which can render to our surface
                     compatible_surface: Some(&surface),
                 })
                 .await
                 .expect("Failed to find an appropriate adapter")
         });
 
-        // Create the logical device and command queue
+        // 异步创建逻辑设备和命令队列
         let (device, queue) = tauri::async_runtime::block_on(async {
             adapter
                 .request_device(
                     &wgpu::DeviceDescriptor {
                         label: None,
                         required_features: wgpu::Features::empty(),
-                        // WebGL doesn't support all of wgpu's features, so if
-                        // we're building for the web we'll have to disable some.
                         required_limits: if cfg!(target_arch = "wasm32") {
                             wgpu::Limits::downlevel_webgl2_defaults()
                         } else {
@@ -61,6 +71,7 @@ impl Device {
                 .expect("Failed to create device")
         });
 
+        // 获取表面能力并创建表面配置
         let caps = surface.get_capabilities(&adapter);
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
@@ -73,8 +84,10 @@ impl Device {
             desired_maximum_frame_latency: 2,
         };
 
+        // 配置表面
         surface.configure(&device, &config);
 
+        // 返回新创建的 Device 实例
         Ok(Self {
             surface,
             device,

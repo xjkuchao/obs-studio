@@ -15,6 +15,7 @@
         "@tauri-apps/api": "2.0.0-rc.0",
         "@tauri-apps/plugin-log": "2.0.0-rc.0",
         "dayjs": "^1.11.13",
+        "pinia": "^2.2.2",
         "vue": "^3.4.38",
         "vue-i18n": "^9.14.0"
     },

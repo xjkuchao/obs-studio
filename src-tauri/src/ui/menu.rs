@@ -1,3 +1,4 @@
+/// 菜单相关的模块
 use std::{collections::HashMap, sync::OnceLock};
 
 use log::debug;
@@ -8,9 +9,18 @@ use tauri::{
 
 use crate::{utils::locale::t, Result};
 
+/// 菜单映射类型，用于存储菜单项
 type MenuMap = HashMap<MenuId, MenuItemKind<Wry>>;
+
+/// 全局静态变量，用于存储菜单映射
 static MENUS: OnceLock<MenuMap> = OnceLock::new();
 
+/// 递归展平子菜单
+///
+/// # 参数
+///
+/// * `menuitem` - 菜单项
+/// * `menus` - 菜单映射
 fn flat_submenu(menuitem: &MenuItemKind<Wry>, menus: &mut MenuMap) {
     menus.insert(menuitem.id().clone(), menuitem.clone());
 
@@ -29,6 +39,15 @@ fn flat_submenu(menuitem: &MenuItemKind<Wry>, menus: &mut MenuMap) {
     }
 }
 
+/// 展平整个菜单
+///
+/// # 参数
+///
+/// * `menu` - 菜单
+///
+/// # 返回值
+///
+/// 返回展平后的菜单映射
 fn flat_menu(menu: &Menu<Wry>) -> MenuMap {
     let mut menus: MenuMap = HashMap::new();
 
@@ -44,6 +63,16 @@ fn flat_menu(menu: &Menu<Wry>) -> MenuMap {
     menus
 }
 
+/// 根据ID查找菜单项
+///
+/// # 参数
+///
+/// * `app` - 应用程序句柄
+/// * `id` - 菜单项ID
+///
+/// # 返回值
+///
+/// 返回找到的菜单项，如果未找到则返回None
 fn find_menu_by_id(app: &AppHandle, id: &MenuId) -> Option<MenuItemKind<Wry>> {
     let menus = MENUS.get_or_init(|| {
         let menu = app.menu().unwrap();
@@ -53,6 +82,15 @@ fn find_menu_by_id(app: &AppHandle, id: &MenuId) -> Option<MenuItemKind<Wry>> {
     menus.get(id).cloned()
 }
 
+/// 设置应用程序菜单
+///
+/// # 参数
+///
+/// * `app` - 应用程序句柄
+///
+/// # 返回值
+///
+/// 返回Result<()>，表示操作是否成功
 pub fn setup_menus(app: &AppHandle) -> Result<()> {
     let menu = Menu::with_items(
         app,
@@ -334,6 +372,7 @@ pub fn setup_menus(app: &AppHandle) -> Result<()> {
 
     app.set_menu(menu)?;
 
+    // 设置菜单事件处理
     app.on_menu_event(|app, event| {
         if event.id == MenuId::new("Basic.MainMenu.Edit.Scale.Window") {
             let menu = find_menu_by_id(app, &event.id).unwrap();

@@ -1,3 +1,4 @@
+/// 系统托盘相关功能模块
 use tauri::{
     menu::{Menu, MenuId, MenuItem, PredefinedMenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconEvent},
@@ -6,6 +7,16 @@ use tauri::{
 
 use crate::{utils::locale::t, Result, MAIN_TRAY_ID, MAIN_WINDOW_ID};
 
+/// 设置系统托盘菜单
+///
+/// # 参数
+///
+/// * `app` - 应用程序句柄
+/// * `show` - 是否显示主窗口
+///
+/// # 返回值
+///
+/// 返回 `Result<Option<Menu<Wry>>>`，表示菜单创建是否成功
 fn setup_tray_menu(app: &AppHandle, show: bool) -> Result<Option<Menu<Wry>>> {
     let title = if show {
         t("Basic.SystemTray.Show")?
@@ -25,6 +36,11 @@ fn setup_tray_menu(app: &AppHandle, show: bool) -> Result<Option<Menu<Wry>>> {
     Ok(Some(tray_menu))
 }
 
+/// 切换主窗口的显示状态
+///
+/// # 参数
+///
+/// * `app` - 应用程序句柄
 fn toggle_main_window(app: &AppHandle) {
     let main_window = app.get_window(MAIN_WINDOW_ID).unwrap();
     let system_tray = app.tray_by_id(MAIN_TRAY_ID).unwrap();
@@ -45,6 +61,15 @@ fn toggle_main_window(app: &AppHandle) {
     }
 }
 
+/// 设置系统托盘
+///
+/// # 参数
+///
+/// * `app` - 应用程序句柄
+///
+/// # 返回值
+///
+/// 返回 `Result<()>`，表示操作是否成功
 pub fn setup_tray(app: &AppHandle) -> Result<()> {
     let system_tray = match app.tray_by_id(MAIN_TRAY_ID) {
         Some(tray) => tray,
@@ -54,6 +79,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<()> {
     // 默认显示隐藏
     system_tray.set_menu(setup_tray_menu(app, false)?)?;
 
+    // 设置菜单事件处理
     system_tray.on_menu_event(|app, event| {
         if event.id == MenuId::new("Basic.SystemTray.Show") {
             toggle_main_window(app);
@@ -64,6 +90,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<()> {
         }
     });
 
+    // 设置托盘图标事件处理
     system_tray.on_tray_icon_event(|tray, event| {
         if event.id() == MAIN_TRAY_ID {
             match event {

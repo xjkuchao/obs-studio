@@ -1,3 +1,4 @@
+/// 国际化模块
 use std::{
     collections::HashMap,
     path::PathBuf,
@@ -10,11 +11,23 @@ use tauri::{AppHandle, Manager};
 
 use crate::{utils::dialog::message, Result};
 
+/// 语言映射类型，用于存储不同语言的翻译
 pub type LocaleMap = HashMap<String, HashMap<String, Option<String>>>;
+/// 全局静态变量，用于存储所有支持的语言翻译
 pub static LOCALES: OnceLock<LocaleMap> = OnceLock::new();
 
+/// 全局静态变量，用于存储当前使用的语言
 static CURRENT_LOCALE: OnceLock<Mutex<String>> = OnceLock::new();
 
+/// 加载所有支持的语言翻译
+///
+/// # 参数
+///
+/// * `app` - Tauri应用程序句柄
+///
+/// # 返回值
+///
+/// 返回 `Result<()>`，表示操作是否成功
 pub fn load_locales(app: &AppHandle) -> Result<()> {
     LOCALES.get_or_init(|| {
         let mut locale_messages: LocaleMap = HashMap::new();
@@ -113,6 +126,11 @@ pub fn load_locales(app: &AppHandle) -> Result<()> {
     Ok(())
 }
 
+/// 获取当前使用的语言
+///
+/// # 返回值
+///
+/// 返回 `Result<String>`，表示当前使用的语言
 pub fn get_locale() -> Result<String> {
     let current_locale = CURRENT_LOCALE.get_or_init(|| {
         let mut locale = sys_locale::get_locale().unwrap_or_else(|| String::from("en-US"));
@@ -128,6 +146,15 @@ pub fn get_locale() -> Result<String> {
     Ok(current_locale.lock().unwrap().clone())
 }
 
+/// 设置当前使用的语言
+///
+/// # 参数
+///
+/// * `locale` - 要设置的语言代码
+///
+/// # 返回值
+///
+/// 返回 `Result<()>`，表示操作是否成功
 pub fn set_locale(locale: &str) -> Result<()> {
     // locale must in the supported locales
     let support_locales = LOCALES
@@ -146,6 +173,15 @@ pub fn set_locale(locale: &str) -> Result<()> {
     Ok(())
 }
 
+/// 获取指定键的翻译
+///
+/// # 参数
+///
+/// * `key` - 翻译键
+///
+/// # 返回值
+///
+/// 返回 `Result<String>`，表示翻译后的文本
 pub fn t(key: &str) -> Result<String> {
     let locale = get_locale()?;
 

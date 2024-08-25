@@ -1,3 +1,4 @@
+/// 此模块处理应用程序的布局和窗口管理
 use std::{collections::HashMap, sync::Mutex};
 
 use anyhow::Ok;
@@ -13,10 +14,21 @@ use crate::{
     Result, MAIN_WINDOW_ID,
 };
 
+/// 存储窗口上下文的全局静态变量
 lazy_static! {
     static ref WINDOW_CONTEXT: Mutex<HashMap<String, Context>> = Mutex::new(HashMap::new());
 }
 
+/// 处理布局相关的事件
+///
+/// # 参数
+///
+/// * `app` - 应用程序句柄
+/// * `event` - 运行时事件
+///
+/// # 返回值
+///
+/// 返回 `Result<()>`，表示操作是否成功
 pub fn layout_event(app: &AppHandle, event: &RunEvent) -> Result<()> {
     match event {
         tauri::RunEvent::WindowEvent { label, event, .. } => {
@@ -49,6 +61,15 @@ pub fn layout_event(app: &AppHandle, event: &RunEvent) -> Result<()> {
     Ok(())
 }
 
+/// 设置应用程序的布局
+///
+/// # 参数
+///
+/// * `app` - 应用程序句柄
+///
+/// # 返回值
+///
+/// 返回 `Result<()>`，表示操作是否成功
 pub fn setup_layout(app: &AppHandle) -> Result<()> {
     let width = 1086.;
     let height = 729.;
@@ -100,6 +121,15 @@ pub fn setup_layout(app: &AppHandle) -> Result<()> {
     Ok(())
 }
 
+/// 更新应用程序窗口的标题
+///
+/// # 参数
+///
+/// * `app` - 应用程序句柄
+///
+/// # 返回值
+///
+/// 返回 `Result<()>`，表示操作是否成功
 pub fn update_title(app: &AppHandle) -> Result<()> {
     let window = app.get_window(MAIN_WINDOW_ID).unwrap();
 
